@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader
 
 from lingual.annotate import label_image
 from lingual.config import read_config
-from lingual.data import Seg_Dataset, Stack_Dataset, load_rgb
+from dataloader.dataloader_seg import Seg_Dataset, Stack_Dataset, load_rgb
 from lingual.model import seg_model
 from lingual.step1_selection import select_boxes, top_up_boxes
 from lingual.step5_train import evaluate, train_epoch

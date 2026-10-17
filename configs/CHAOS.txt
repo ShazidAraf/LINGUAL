@@ -5,7 +5,7 @@ Exp_name = Clean
 dataset_name = CHAOS
 target_data_dir = data/CHAOS_2D/T1DUAL_OutPhase
 target_stack_data_dir = data/CHAOS_stacks/T1DUAL_OutPhase
-pretrained_ckpt_path = checkpoints/deeplabv3_mri.pth
+pretrained_ckpt_path = checkpoint/MRI/deeplabv3_mri.pth
 num_classes = 5
 
 # ---- Active learning ----

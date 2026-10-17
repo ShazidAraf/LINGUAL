@@ -12,5 +12,4 @@ weights
 
 # your machine-specific configs
 configs/local/
-checkpoints/
 data/

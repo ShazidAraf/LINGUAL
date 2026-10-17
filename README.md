@@ -23,6 +23,8 @@ Whole-patch answers (`Entire region Foreground`, `Entire region Background`, `No
 
 ```
 main.py                     round loop (steps 1-5)
+dataloader/                 Seg_Dataset (2D), Stack_Dataset (3D CHAOS test), labelled-pool masks
+checkpoint/                 source-model checkpoints (.pth not tracked)
 run.sh                      SLURM launcher
 configs/                    UDIAT.txt, CHAOS.txt, Shenzhen.txt (local/ = your own paths, git-ignored)
 lingual/                    LINGUAL code (one file per step + data, model, metrics)
@@ -48,8 +50,8 @@ Tested with Python 3.10, PyTorch 2.0.1, CUDA 11.8. A GPU is required (GraCo runs
    <weights>/graco/GraCo_large_lora.pth
    ```
    Put them in `weights/` inside this repo (default), or `export GRACO_WEIGHTS=<weights>`.
-2. **Source segmentation model**: a DeepLabV3 (ResNet-18) checkpoint trained on the source domain.
-   Default location: `checkpoints/<name>.pth` (see `pretrained_ckpt_path` in the config).
+2. **Source segmentation model**: DeepLabV3 (ResNet-18) checkpoints trained on the source domain, in
+   `checkpoint/<modality>/` (see `checkpoint/README.md` and `pretrained_ckpt_path` in the config).
 
 ## Data
 
@@ -64,7 +66,7 @@ Adaptation settings used: BUSI → UDIAT (ultrasound), CHAOS T1 in-phase → out
 
 ## Run
 
-The configs expect `data/`, `checkpoints/` and `weights/` inside the repo (all git-ignored; symlinks are fine).
+The configs expect `data/`, `checkpoint/*.pth` and `weights/` inside the repo (all git-ignored; symlinks are fine).
 Otherwise edit the paths in `configs/<dataset>.txt`. Machine-specific copies can go in `configs/local/` (git-ignored). Then:
 ```bash
 export OPENAI_API_KEY=...          # needed for program_mode = llm

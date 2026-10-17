@@ -4,7 +4,7 @@ Exp_name = Clean
 # ---- Data (BUSI -> UDIAT) ----
 dataset_name = UDIAT
 target_data_dir = data/UDIAT_reorganized
-pretrained_ckpt_path = checkpoints/deeplabv3_ultrasound_v1.pth
+pretrained_ckpt_path = checkpoint/Ultrasound/deeplabv3_ultrasound.pth
 num_classes = 2
 
 # ---- Active learning ----
