@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+results/
+logs/
+*.out
+# weights and checkpoints are not part of the repo
+*.pth
+*.pt
+*.ckpt
+weights
+.env
+
+# your machine-specific configs
+configs/local/
+checkpoints/
+data/

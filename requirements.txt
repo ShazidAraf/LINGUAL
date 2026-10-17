@@ -1,0 +1,25 @@
+# Versions tested (Python 3.10, CUDA 11.8). Install torch first:
+#   pip install torch==2.0.1 torchvision==0.15.2 --index-url https://download.pytorch.org/whl/cu118
+numpy==1.26.4
+scipy==1.15.2
+scikit-image==0.25.2
+scikit-learn==1.6.1
+opencv-python==4.11.0.86
+Pillow==10.1.0
+tifffile==2025.3.13
+matplotlib==3.3.4
+pandas==2.2.3
+sympy==1.13.1
+tqdm==4.67.1
+timm==0.6.13
+openai==0.28.0
+# GraCo (third_party/graco/isegm)
+albumentations==0.5.2
+easydict==1.9
+loralib==0.1.2
+mmcv==1.6.2
+pycocotools==2.0.8
+ftfy==6.3.1
+regex==2024.11.6
+PyYAML==6.0
+Cython==0.29.32

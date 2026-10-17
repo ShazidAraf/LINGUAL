@@ -1,0 +1,34 @@
+seed = 1997
+Exp_name = Clean
+
+# ---- Data (CHAOS T1 in-phase -> out-of-phase) ----
+dataset_name = CHAOS
+target_data_dir = data/CHAOS_2D/T1DUAL_OutPhase
+target_stack_data_dir = data/CHAOS_stacks/T1DUAL_OutPhase
+pretrained_ckpt_path = checkpoints/deeplabv3_mri.pth
+num_classes = 5
+
+# ---- Active learning ----
+method = RIPU              # RIPU | Entropy
+patch_size = 21           # box side (px), must be odd
+budget = 5                # % of image pixels, summed over all rounds
+Rounds = 5
+n_budget_box = -1         # -1 = derive boxes/round from budget
+fragment_threshold = 200  # REMOVE module: min component size (px)
+
+# ---- Language -> program ----
+program_mode = llm        # llm (GPT-3.5, needs OPENAI_API_KEY) | template (rule-based, offline)
+bool_region_mask = False  # False = original LINGUAL behaviour (see lingual/step4_modules.py)
+
+# ---- Training ----
+num_epochs = 10
+batch_size = 8
+learning_rate = 0.001
+eval_interval = 2
+num_workers = 2
+augmentation = False
+img_size = (448, 448)
+bg_label = 0
+distance_units = px
+result_save_dir = results   # relative to this folder
+DEBUG_MODE = False
