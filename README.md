@@ -1,4 +1,6 @@
-# LINGUAL: Language-Guided Active Domain Adaptation for Medical Image Segmentation
+# LINGUAL: Language-INtegrated GUidance in Active Learning for Medical Image Segmentation
+
+Official implementation of our paper **LINGUAL: Language-INtegrated GUidance in Active Learning for Medical Image Segmentation** (WACV 2027).
 
 LINGUAL adapts a segmentation model trained on a source domain to a new target domain with a small
 annotation budget. Instead of drawing masks, the annotator gives short **language feedback** on the
@@ -127,3 +129,7 @@ Written to `<result_save_dir>/<method>/<Exp_name>/`:
 - RIPU: Xie et al., *Towards Fewer Annotations: Active Learning via Region Impurity and Prediction Uncertainty for Domain Adaptive Semantic Segmentation*, CVPR 2022.
 - GraCo: Zhao et al., *GraCo: Granularity-Controllable Interactive Segmentation*, CVPR 2024.
 - VisProg: Gupta and Kembhavi, *Visual Programming: Compositional Visual Reasoning without Training*, CVPR 2023.
+
+## License
+
+MIT License (see `LICENSE`). GraCo code in `third_party/graco` is under Apache-2.0.
