@@ -5,6 +5,8 @@ Exp_name = Clean
 dataset_name = UDIAT
 target_data_dir = data/UDIAT_reorganized
 pretrained_ckpt_path = checkpoint/Ultrasound/deeplabv3_ultrasound.pth
+graco_weights_dir = weights   # simple_click/sbd_vit_large.pth + graco/GraCo_large_lora.pth
+pool_dir = results/AL_mask   # labelled-pool masks (omit -> <target_data_dir>/train/AL_mask)
 num_classes = 2
 
 # ---- Active learning ----

@@ -61,11 +61,12 @@ class Seg_Dataset(_Base):
     """2D images. Returns (image, gt, name) or, in AL_mode, (image, gt, name, pool_mask)."""
 
     def __init__(self, dataset_name, data_dir, split="train", augmentation=False, AL_mode=False,
-                 Exp_name="Exp", img_size=(448, 448)):
+                 Exp_name="Exp", img_size=(448, 448), pool_dir=None):
         super().__init__(dataset_name, data_dir, split, augmentation, img_size)
         self.AL_mode = AL_mode
         if AL_mode:
-            self.AL_dir = os.path.join(data_dir, split, "AL_mask", Exp_name)
+            # default: <data_dir>/<split>/AL_mask/<Exp_name> (original LINGUAL location)
+            self.AL_dir = os.path.join(pool_dir or os.path.join(data_dir, split, "AL_mask"), Exp_name)
             if os.path.exists(self.AL_dir):
                 shutil.rmtree(self.AL_dir)
             os.makedirs(self.AL_dir, exist_ok=True)

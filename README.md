@@ -80,6 +80,11 @@ sbatch run.sh configs/UDIAT.txt RIPU
 
 | Key | Meaning |
 |---|---|
+| `target_data_dir`, `target_stack_data_dir` | target dataset (CHAOS test uses 3D stacks) |
+| `pretrained_ckpt_path` | source segmentation model |
+| `graco_weights_dir` | folder with `simple_click/sbd_vit_large.pth` and `graco/GraCo_large_lora.pth` |
+| `result_save_dir` | metrics, feedback log, final model |
+| `pool_dir` | labelled-pool masks (omitted: `<target_data_dir>/train/AL_mask`) |
 | `budget` | % of image pixels labelled, summed over all rounds |
 | `Rounds` | number of active-learning rounds |
 | `patch_size` | side of a selected patch (odd) |
@@ -95,7 +100,7 @@ sbatch run.sh configs/UDIAT.txt RIPU
 - `feedback_log.csv`: one row per patch with the operation, direction, instruction, generated program and any executor error
 - `final_model.pth`
 
-Labelled-pool masks are written to `<target_data_dir>/train/AL_mask/<Exp_name>/`.
+Labelled-pool masks are written to `<pool_dir>/<Exp_name>/`.
 
 ## Acknowledgements
 

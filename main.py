@@ -22,6 +22,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
+from lingual import graco_executor
 from lingual.annotate import label_image
 from lingual.config import read_config
 from dataloader.dataloader_seg import Seg_Dataset, Stack_Dataset, load_rgb
@@ -60,11 +61,13 @@ def setup(args):
 
 def main():
     cfg = setup(parse_args())
+    if getattr(cfg, "graco_weights_dir", None):
+        graco_executor.GRACO_WEIGHTS = cfg.graco_weights_dir
     print(cfg)
     print("Boxes per image per round:", cfg.n_budget_box)
 
     target = Seg_Dataset(cfg.dataset_name, cfg.target_data_dir, "train", cfg.augmentation, AL_mode=True,
-                         Exp_name=cfg.Exp_name, img_size=cfg.img_size)
+                         Exp_name=cfg.Exp_name, img_size=cfg.img_size, pool_dir=getattr(cfg, "pool_dir", None))
     if cfg.dataset_name == "CHAOS":
         target_test = Stack_Dataset(cfg.dataset_name, cfg.target_stack_data_dir, "test", img_size=cfg.img_size)
     else:
