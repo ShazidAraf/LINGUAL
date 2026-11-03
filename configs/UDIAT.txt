@@ -18,7 +18,9 @@ n_budget_box = -1         # -1 = derive boxes/round from budget
 fragment_threshold = 200  # REMOVE module: min component size (px)
 
 # ---- Language -> program ----
-program_mode = llm        # llm (GPT-3.5, needs OPENAI_API_KEY) | template (rule-based, offline)
+llm_model = gpt-4.1-mini      # OpenAI chat model for program generation
+llm_fallback_model = gpt-4o-mini
+program_mode = llm        # llm (needs OPENAI_API_KEY) | template (rule-based)
 bool_region_mask = False  # region indexing for directional FILL / REMOVE / SMOOTH
 
 # ---- Training ----

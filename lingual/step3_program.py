@@ -1,12 +1,13 @@
 """STEP 3 - language feedback -> program (VisProg style, Gupta & Kembhavi, CVPR 2023).
 
-An LLM (gpt-3.5-turbo, openai==0.28 API, key in $OPENAI_API_KEY) reads the instruction and
+An LLM (cfg.llm_model, openai==0.28 API, key in $OPENAI_API_KEY) reads the instruction and
 writes a short program over the LINGUAL modules (DIRECTION, EXPAND, SHRINK, FILL, REMOVE, SMOOTH).
 
 cfg.program_mode = llm       -> LLM writes the program
 cfg.program_mode = template  -> program built by rules from the keywords (no API key needed)
 """
 import os
+import re
 import time
 
 import openai
@@ -105,22 +106,40 @@ Instruction: {instruction}
 Program:
 """
 
-def _chat(messages, temperature=0.7, top_p=0.5, max_retries=5, delay=3):
+_STEP = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([A-Z]+)\s*\((.*)\)\s*$")
+
+
+def _chat(messages, model, fallback_model, temperature=0.7, top_p=0.5, max_retries=5, delay=3):
     openai.api_key = os.getenv("OPENAI_API_KEY")
     for attempt in range(max_retries):
-        model = "gpt-4-turbo" if attempt == max_retries - 1 else "gpt-3.5-turbo"
+        name = fallback_model if attempt == max_retries - 1 else model
         try:
-            return openai.ChatCompletion.create(model=model, messages=messages, temperature=temperature,
+            return openai.ChatCompletion.create(model=name, messages=messages, temperature=temperature,
                                                 max_tokens=512, top_p=top_p, n=1)
+        except openai.error.InvalidRequestError as e:  # not retryable: go to the fallback model
+            print(f"LLM attempt {attempt + 1} ({name}) failed: {e}")
+            if name == fallback_model:
+                break
+            model = fallback_model
         except Exception as e:
-            print(f"LLM attempt {attempt + 1} ({model}) failed: {type(e).__name__}: {e}")
+            print(f"LLM attempt {attempt + 1} ({name}) failed: {type(e).__name__}: {e}")
             time.sleep(delay * (2 ** attempt))
     raise RuntimeError("LLM program generation failed")
 
 
-def llm_program(instruction):
-    response = _chat([{"role": "user", "content": PROMPT.format(instruction=instruction)}])
-    return response.choices[0]["message"]["content"].strip("\n")
+def extract_program(text):
+    """Keep only `VAR=MODULE(...)` lines (drops explanations, code fences and # comments)."""
+    lines = []
+    for line in text.splitlines():
+        m = _STEP.match(line.split("#", 1)[0])
+        if m:
+            lines.append(f"{m.group(1)}={m.group(2)}({m.group(3).strip()})")
+    return "\n".join(lines)
+
+
+def llm_program(instruction, model="gpt-4.1-mini", fallback_model="gpt-4o-mini"):
+    response = _chat([{"role": "user", "content": PROMPT.format(instruction=instruction)}], model, fallback_model)
+    return extract_program(response.choices[0]["message"]["content"])
 
 
 _TEMPLATE = {  # keyword -> (DIRECTION command, module)
@@ -148,4 +167,5 @@ def make_program(keywords, cfg):
     instruction = ", ".join(keywords)
     if getattr(cfg, "program_mode", "llm") == "template":
         return instruction, template_program(keywords)
-    return instruction, llm_program(instruction)
+    return instruction, llm_program(instruction, getattr(cfg, "llm_model", "gpt-4.1-mini"),
+                                    getattr(cfg, "llm_fallback_model", "gpt-4o-mini"))

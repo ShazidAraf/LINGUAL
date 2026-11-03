@@ -35,9 +35,11 @@ def parse_step(step):
 
 
 def directions_for(keyword, instruction):
+    """Directions named in every sentence that contains all words of `keyword`."""
+    words = re.findall(r"[a-z]+", keyword.lower())
     found = set()
     for sentence in re.split(r"[.?!]", instruction):
-        if keyword.lower() in sentence.lower():
+        if all(w in sentence.lower() for w in words):
             found.update(re.findall(r"\b(" + "|".join(map(re.escape, ALL_DIRECTIONS)) + r")\b", sentence.lower()))
     return list(found)
 
