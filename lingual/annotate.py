@@ -1,6 +1,5 @@
 """Steps 2-4 for one image: for every selected box, simulate feedback, build a program, run it,
 and write the corrected labels into the labelled pool mask (only inside the box).
-Same logic as LINGUAL_v3.Apply_LINGUAL with refine_boxes = False and use_only_improved_mask = False.
 """
 import traceback
 

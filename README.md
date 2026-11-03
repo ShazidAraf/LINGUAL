@@ -15,7 +15,7 @@ Adaptation runs for several rounds. Each round has five steps.
 2. **Language feedback.** For every selected patch, the annotator describes what is wrong with the
    prediction, for example *"Expand the border to top-left, Remove the fragments, Smooth the Border"*.
    Whole-patch answers are *"Entire region Foreground"*, *"Entire region Background"* and *"No change"*.
-   In this code the annotator is simulated from the ground truth.
+   The annotator is simulated from the ground truth.
 3. **Program generation.** A large language model turns the feedback into a short program over the
    editing modules, following a few-shot visual-programming prompt.
 4. **Program execution.** The modules edit the mask inside the patch:

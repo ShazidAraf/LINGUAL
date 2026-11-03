@@ -2,10 +2,9 @@
 
 An LLM (gpt-3.5-turbo, openai==0.28 API, key in $OPENAI_API_KEY) reads the instruction and
 writes a short program over the LINGUAL modules (DIRECTION, EXPAND, SHRINK, FILL, REMOVE, SMOOTH).
-Few-shot prompt = visprog-main/prompts/AL_SEG.py, unchanged.
 
-cfg.program_mode = llm       -> LLM writes the program (original LINGUAL)
-cfg.program_mode = template  -> program built by rules from the keywords (offline / no API key; NOT the paper setting)
+cfg.program_mode = llm       -> LLM writes the program
+cfg.program_mode = template  -> program built by rules from the keywords (no API key needed)
 """
 import os
 import time

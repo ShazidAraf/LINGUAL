@@ -60,9 +60,7 @@ def _paste(mask, edited, box, direction, bool_region):
         out[ty:ty + h, tx:tx + w] = edited[ty:ty + h, tx:tx + w]
     else:
         sel = region_of(mask, box, direction)
-        # Original LINGUAL indexes with the 0/1 uint8 array itself (integer row indexing -> only rows 0/1
-        # of the image change, so directional FILL/REMOVE/SMOOTH are near no-ops). Kept by default.
-        # cfg.bool_region_mask = True uses it as a boolean mask (= the intended behaviour).
+        # bool_region_mask = False indexes with the 0/1 array, True with a boolean mask
         if bool_region:
             sel = sel.astype(bool)
         out[sel] = edited[sel]

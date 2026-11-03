@@ -19,7 +19,7 @@ fragment_threshold = 200  # REMOVE module: min component size (px)
 
 # ---- Language -> program ----
 program_mode = llm        # llm (GPT-3.5, needs OPENAI_API_KEY) | template (rule-based, offline)
-bool_region_mask = False  # False = original LINGUAL behaviour (see lingual/step4_modules.py)
+bool_region_mask = False  # region indexing for directional FILL / REMOVE / SMOOTH
 
 # ---- Training ----
 num_epochs = 10

@@ -65,7 +65,7 @@ class Seg_Dataset(_Base):
         super().__init__(dataset_name, data_dir, split, augmentation, img_size)
         self.AL_mode = AL_mode
         if AL_mode:
-            # default: <data_dir>/<split>/AL_mask/<Exp_name> (original LINGUAL location)
+            # default: <data_dir>/<split>/AL_mask/<Exp_name>
             self.AL_dir = os.path.join(pool_dir or os.path.join(data_dir, split, "AL_mask"), Exp_name)
             if os.path.exists(self.AL_dir):
                 shutil.rmtree(self.AL_dir)

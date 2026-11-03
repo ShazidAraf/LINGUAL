@@ -1,6 +1,6 @@
 # Source-model checkpoints
 
-DeepLabV3 (ResNet-18 encoder) trained on the source domain. `.pth` files are git-ignored.
+DeepLabV3 (ResNet-18 encoder) trained on the source domain.
 
 | Path | Source -> target | num_classes |
 |---|---|---|

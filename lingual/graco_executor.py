@@ -1,8 +1,5 @@
 """EXPAND / SHRINK executor driven by GraCo (Zhao et al., CVPR 2024, granularity-controllable interactive seg).
 
-Clean copy of GraCo-main/FUNCTIONS/Expand_Shrink_v8.py (that file is never edited).
-Algorithm and constants unchanged; only debug plotting removed and the predictor loaded lazily.
-
 Idea per iteration:
   1. take thin bands just inside / just outside the current boundary, inside the box, on the side
      facing the requested direction;
@@ -51,7 +48,7 @@ def get_predictor():
 
 
 def get_iou(a, b):
-    """Same as isegm.inference.utils.get_iou (nan when both maps are empty)."""
+    """IoU of two binary maps (nan when both are empty)."""
     a, b = a == 1, b > 0
     return np.float64(np.logical_and(a, b).sum()) / np.logical_or(a, b).sum()
 

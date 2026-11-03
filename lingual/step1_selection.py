@@ -3,11 +3,11 @@
 Each image gets `cfg.n_budget_box` square boxes of side `cfg.patch_size`,
 returned as [x1, y1, x2, y2]. Pixels already labelled (pool mask != 255) are never re-selected.
 
-Acquisition code is copied unchanged in ../Acquisition_Function/{RIPU,Entropy}/
+Acquisition functions in ../Acquisition_Function/{RIPU,Entropy}/
   RIPU    : region impurity x region-averaged entropy (Xie et al., CVPR 2022, "RIPU")
   Entropy : region-averaged prediction entropy
 If an image gets fewer boxes than the budget, `top_up_boxes` adds boxes at the highest
-pixel-entropy peaks (same as Acquisition_Function/extra_box.py).
+pixel-entropy peaks.
 """
 import os
 import sys
