@@ -1,109 +1,129 @@
 # LINGUAL: Language-Guided Active Domain Adaptation for Medical Image Segmentation
 
-A segmentation model trained on a source domain is adapted to a target domain with only a small
-annotation budget. The annotator does not draw masks. They give short **language feedback**
-on the patches where the model is most uncertain, and the feedback is turned into mask edits automatically.
+LINGUAL adapts a segmentation model trained on a source domain to a new target domain with a small
+annotation budget. Instead of drawing masks, the annotator gives short **language feedback** on the
+image patches where the model is most uncertain. The feedback is converted into a program that edits
+the predicted mask, and the edited patches are used to fine-tune the model.
 
-## Pipeline
+## Method
 
-Each active-learning round runs five steps:
+Adaptation runs for several rounds. Each round has five steps.
 
-| Step | What happens | Code |
-|---|---|---|
-| 1. Select | The model scores every pixel's uncertainty (RIPU or Entropy) and picks the top 21x21 patches per image | `lingual/step1_selection.py`, `Acquisition_Function/` |
-| 2. Feedback | A simulated annotator compares prediction and ground truth inside each patch and writes feedback such as *"Expand the border to top-left, Remove the fragments, Smooth the Border"* | `lingual/step2_feedback.py` |
-| 3. Program | An LLM (GPT-3.5, VisProg-style few-shot prompt) converts the feedback into a program over the editing modules | `lingual/step3_program.py` |
-| 4. Execute | Modules edit the mask inside the patch: `EXPAND` / `SHRINK` (GraCo granularity-controllable interactive segmentation), `FILL`, `REMOVE`, `SMOOTH`. The edited patch goes into the labelled pool | `lingual/step4_modules.py`, `lingual/graco_executor.py`, `lingual/annotate.py` |
-| 5. Train | The model is fine-tuned on labelled-pool pixels only (unlabelled pixels = 255, ignored) and evaluated on the target test set | `lingual/step5_train.py` |
+1. **Uncertain patch selection.** The model predicts every target training image. An acquisition
+   function (RIPU or Entropy) scores each pixel, and the top-scoring square patches are selected.
+   Patches that are already labelled are never selected again.
+2. **Language feedback.** For every selected patch, the annotator describes what is wrong with the
+   prediction, for example *"Expand the border to top-left, Remove the fragments, Smooth the Border"*.
+   Whole-patch answers are *"Entire region Foreground"*, *"Entire region Background"* and *"No change"*.
+   In this code the annotator is simulated from the ground truth.
+3. **Program generation.** A large language model turns the feedback into a short program over the
+   editing modules, following a few-shot visual-programming prompt.
+4. **Program execution.** The modules edit the mask inside the patch:
+   - `DIRECTION` reads the direction named in the feedback
+   - `EXPAND` / `SHRINK` move the boundary using GraCo, a granularity-controllable interactive segmentation model
+   - `FILL` closes holes, `REMOVE` deletes small fragments, `SMOOTH` smooths the border
 
-Ground truth is used only by the simulated annotator (step 2) and for evaluation.
-Whole-patch answers (`Entire region Foreground`, `Entire region Background`, `No change`) skip steps 3 and 4.
+   The edited patch is written into the labelled pool. Pixels outside selected patches stay unlabelled.
+5. **Training.** The model is fine-tuned on the labelled-pool pixels only and evaluated on the target test set.
 
-## Repository layout
+## Repository structure
 
 ```
-main.py                     round loop (steps 1-5)
-dataloader/                 Seg_Dataset (2D), Stack_Dataset (3D CHAOS test), labelled-pool masks
-checkpoint/                 source-model checkpoints (.pth not tracked)
-run.sh                      SLURM launcher
-configs/                    UDIAT.txt, CHAOS.txt, Shenzhen.txt (local/ = your own paths, git-ignored)
-lingual/                    LINGUAL code (one file per step + data, model, metrics)
-Acquisition_Function/       RIPU and Entropy acquisition + losses
-third_party/graco/isegm/    GraCo inference code (Apache-2.0, see third_party/graco/LICENSE)
-environment.yml, requirements.txt
+main.py                   runs the rounds (steps 1-5)
+run.sh                    SLURM launcher
+configs/                  one config per dataset
+lingual/                  step1_selection.py ... step5_train.py, modules, GraCo executor, model, metrics
+Acquisition_Function/     RIPU and Entropy acquisition functions and losses
+dataloader/               2D datasets and 3D stacks, labelled-pool masks
+checkpoint/               source-domain segmentation models
+third_party/graco/        GraCo inference code (Apache-2.0)
 ```
 
 ## Installation
 
 ```bash
+git clone <this-repo>
+cd LINGUAL
 conda env create -f environment.yml
 conda activate lingual
 ```
-Tested with Python 3.10, PyTorch 2.0.1, CUDA 11.8. A GPU is required (GraCo runs on `cuda:0`).
 
-## Weights (not included)
+Requirements: Python 3.10, PyTorch 2.0.1, CUDA 11.8 and one GPU.
 
-1. **GraCo**: download `sbd_vit_large.pth` (SimpleClick) and `GraCo_large_lora.pth` from the
-   [GraCo repository](https://github.com/Zhao-Yian/GraCo) and arrange them as
-   ```
-   <weights>/simple_click/sbd_vit_large.pth
-   <weights>/graco/GraCo_large_lora.pth
-   ```
-   Put them in `weights/` inside this repo (default), or `export GRACO_WEIGHTS=<weights>`.
-2. **Source segmentation model**: DeepLabV3 (ResNet-18) checkpoints trained on the source domain, in
-   `checkpoint/<modality>/` (see `checkpoint/README.md` and `pretrained_ckpt_path` in the config).
+## Weights
+
+**GraCo.** Download `sbd_vit_large.pth` and `GraCo_large_lora.pth` from the
+[GraCo repository](https://github.com/Zhao-Yian/GraCo) and place them as:
+```
+weights/simple_click/sbd_vit_large.pth
+weights/graco/GraCo_large_lora.pth
+```
+
+**Source model.** Put the source-domain DeepLabV3 checkpoint in `checkpoint/<modality>/`
+(see `checkpoint/README.md`).
 
 ## Data
 
-Each dataset folder must look like:
+Each dataset folder follows this layout:
 ```
-<target_data_dir>/train/data/*.png    <target_data_dir>/train/labels/*.png
-<target_data_dir>/test/data/*.png     <target_data_dir>/test/labels/*.png
+<dataset>/train/data/     <dataset>/train/labels/
+<dataset>/test/data/      <dataset>/test/labels/
 ```
-Binary labels are stored as 0/255. CHAOS labels are stored in steps of 63, and its test set is a set of 3D tif stacks (`target_stack_data_dir`).
+Binary labels use 0/255. CHAOS labels use multiples of 63, and the CHAOS test set is given as 3D tif stacks.
 
-Adaptation settings used: BUSI → UDIAT (ultrasound), CHAOS T1 in-phase → out-of-phase (MRI), Montgomery → Shenzhen (X-ray).
+Provided configs: BUSI to UDIAT (ultrasound), CHAOS T1 in-phase to out-of-phase (MRI),
+Montgomery to Shenzhen (chest X-ray).
 
-## Run
+## Usage
 
-The configs expect `data/`, `checkpoint/*.pth` and `weights/` inside the repo (all git-ignored; symlinks are fine).
-Otherwise edit the paths in `configs/<dataset>.txt`. Machine-specific copies can go in `configs/local/` (git-ignored). Then:
-```bash
-export OPENAI_API_KEY=...          # needed for program_mode = llm
-python main.py --cfg configs/UDIAT.txt --method RIPU
-# or on SLURM, from this folder:
-sbatch run.sh configs/UDIAT.txt RIPU
-```
-`--method` is `RIPU` or `Entropy`. `--run_id K` repeats a run with seed `seed + K`.
+1. Set the paths in `configs/<dataset>.txt`.
+2. Set your OpenAI key (used for program generation):
+   ```bash
+   export OPENAI_API_KEY=<your-key>
+   ```
+3. Run:
+   ```bash
+   python main.py --cfg configs/UDIAT.txt --method RIPU
+   ```
+   or on a SLURM cluster:
+   ```bash
+   sbatch run.sh configs/UDIAT.txt RIPU
+   ```
 
-### Main config keys
+Arguments:
+- `--cfg` config file
+- `--method` acquisition function, `RIPU` or `Entropy`
+- `--run_id K` repeat a run with seed `seed + K`
 
-| Key | Meaning |
+## Configuration
+
+| Key | Description |
 |---|---|
-| `target_data_dir`, `target_stack_data_dir` | target dataset (CHAOS test uses 3D stacks) |
-| `pretrained_ckpt_path` | source segmentation model |
-| `graco_weights_dir` | folder with `simple_click/sbd_vit_large.pth` and `graco/GraCo_large_lora.pth` |
-| `result_save_dir` | metrics, feedback log, final model |
-| `pool_dir` | labelled-pool masks (omitted: `<target_data_dir>/train/AL_mask`) |
-| `budget` | % of image pixels labelled, summed over all rounds |
-| `Rounds` | number of active-learning rounds |
-| `patch_size` | side of a selected patch (odd) |
-| `program_mode` | `llm` (paper setting) or `template` (rule-based program, offline, no API key) |
-| `bool_region_mask` | `False` reproduces the original behaviour. When a direction is given, FILL/REMOVE/SMOOTH index the image with a 0/1 integer array, so they barely change it. `True` uses a boolean mask, which is the intended behaviour but a method change |
-| `num_epochs`, `learning_rate`, `batch_size` | fine-tuning per round |
+| `target_data_dir` | target dataset folder |
+| `target_stack_data_dir` | 3D test stacks (CHAOS only) |
+| `pretrained_ckpt_path` | source-domain segmentation model |
+| `graco_weights_dir` | folder containing the GraCo weights |
+| `result_save_dir` | output folder |
+| `pool_dir` | folder for the labelled-pool masks |
+| `budget` | percentage of image pixels annotated over all rounds |
+| `Rounds` | number of rounds |
+| `patch_size` | side length of a selected patch (odd) |
+| `program_mode` | `llm` to generate programs with the LLM, `template` to build them from fixed rules |
+| `bool_region_mask` | region indexing used by directional FILL / REMOVE / SMOOTH (default `False`) |
+| `fragment_threshold` | minimum component size kept by `REMOVE` |
+| `num_epochs`, `batch_size`, `learning_rate` | fine-tuning per round |
+| `num_classes`, `img_size`, `seed` | dataset and run settings |
 
 ## Outputs
 
-`results/<method>/<Exp_name>/`
-- `source_model.txt`: target-test metrics before adaptation
-- `round_<r>.txt`: DSC, RAVD, HD95, ASSD per class during each round
-- `feedback_log.csv`: one row per patch with the operation, direction, instruction, generated program and any executor error
-- `final_model.pth`
-
-Labelled-pool masks are written to `<pool_dir>/<Exp_name>/`.
+Written to `<result_save_dir>/<method>/<Exp_name>/`:
+- `source_model.txt` target test metrics before adaptation
+- `round_<r>.txt` DSC, RAVD, HD95 and ASSD per class during round `r`
+- `feedback_log.csv` feedback, generated program and result for every patch
+- `final_model.pth` adapted model
 
 ## Acknowledgements
 
 - RIPU: Xie et al., *Towards Fewer Annotations: Active Learning via Region Impurity and Prediction Uncertainty for Domain Adaptive Semantic Segmentation*, CVPR 2022.
-- GraCo: Zhao et al., *GraCo: Granularity-Controllable Interactive Segmentation*, CVPR 2024 (code in `third_party/graco`, Apache-2.0), built on SimpleClick.
-- VisProg: Gupta & Kembhavi, *Visual Programming: Compositional Visual Reasoning without Training*, CVPR 2023 (program-generation prompt style).
+- GraCo: Zhao et al., *GraCo: Granularity-Controllable Interactive Segmentation*, CVPR 2024.
+- VisProg: Gupta and Kembhavi, *Visual Programming: Compositional Visual Reasoning without Training*, CVPR 2023.
