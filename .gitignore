@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-results/
+results/*
+!results/.gitkeep
 logs/
 *.out
 # weights and checkpoints are not part of the repo

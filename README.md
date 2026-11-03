@@ -59,8 +59,8 @@ weights/simple_click/sbd_vit_large.pth
 weights/graco/GraCo_large_lora.pth
 ```
 
-**Source model.** Put the source-domain DeepLabV3 checkpoint in `checkpoint/<modality>/`
-(see `checkpoint/README.md`).
+**Source model.** Put the source-domain DeepLabV3 checkpoint in `checkpoint/<modality>/`, e.g. `checkpoint/Ultrasound/deeplabv3_ultrasound.pth`.
+.
 
 ## Data
 
