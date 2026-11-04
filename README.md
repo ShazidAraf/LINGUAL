@@ -2,6 +2,8 @@
 
 Official implementation of our paper **LINGUAL: Language-INtegrated GUidance in Active Learning for Medical Image Segmentation** (WACV 2027).
 
+**[Project page](https://shazidaraf.github.io/projects/lingual/)**
+
 LINGUAL adapts a segmentation model trained on a source domain to a new target domain with a small
 annotation budget. Instead of drawing masks, the annotator gives short **language feedback** on the
 image patches where the model is most uncertain. The feedback is converted into a program that edits
